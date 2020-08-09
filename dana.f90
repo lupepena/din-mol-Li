@@ -1,9 +1,7 @@
 program din-mol-Li
-
-!prueba para git
-  
+  !!comentarios hechos por lupe van con doble signo de exclamacion
   implicit none
-  
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!DEFINE VARIABLES/PARAMETROS A UTILIZAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
   integer,parameter     :: dp=8
   
   !Cosas del sistema  #what a quilombo
@@ -31,7 +29,7 @@ program din-mol-Li
   real(dp)            :: rnew(n,3)    ! Posiciones nuevas
   real(dp)::v(n,3) !veloc.
   real(dp)            :: f(n,3)       ! Fuerza
-  real(dp)::prob
+  real(dp)::prob !!probabilidad que la partícula quede adherida al electrodo
 
   ! Parametros de integración
   real(dp), parameter :: h=1.e-2_dp !paso de tiempo en ps
@@ -40,8 +38,8 @@ program din-mol-Li
   real(dp)            :: t=0.0_dp   !tiempo en ps
 
   !Observables
-  real(dp)            :: energy(n)
-  real(dp)            :: ecin,epot
+  real(dp)            :: energy(n)!!energía de cada partícula
+  real(dp)            :: ecin,epot!!energia cinetica y potencial respect.
   real(dp)::temp,rho,rho0
 
   ! Varios
@@ -49,12 +47,13 @@ program din-mol-Li
   integer             :: i,j,k        ! Enteros 
   real(dp)            :: vm(3)        ! Vector 3D auxiliar
   
-  !Esto es para Ermak
+  !Esto es para Ermak 
   real(dp)::ranv(n,3),acel(n,3)
   real(dp)::cc0,cc1,cc2
   real(dp)::sdr,sdv,skt
   real(dp)::crv1,crv2
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ASIGNA VALORES A LAS VARIABLES!!!!!!!!!!!!!!!1
   ! Leer semilla y probabilidad
   open(15,File='entrada.ini')
   read(15,*) idum 
@@ -101,7 +100,7 @@ program din-mol-Li
   ! Calculo la velocidad neta del sistema/Sino como que se trasladaría todo el sist. en el espacio... Así trabajo c/ coords.
   ! internas ;)
   do k=1,3
-    vm(k)=sum(r(:,k)-rold(:,k))/n
+    vm(k)=sum(r(:,k)-rold(:,k))/n !!por qué es una velocidad?
   enddo
 
   ! Sustraer la velocidad neta
@@ -120,6 +119,7 @@ program din-mol-Li
      acel(i,:)=f(i,:)/m(i)
   enddo
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   ! Abro archivos de salida
   open(11,File='Li_1.xyz')

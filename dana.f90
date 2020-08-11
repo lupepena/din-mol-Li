@@ -1,11 +1,13 @@
-program din-mol-Li
+program dinmolLi
+implicit none
   !!comentarios hechos por lupe van con doble signo de exclamacion
-  implicit none
+  
+  
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!DEFINE VARIABLES/PARAMETROS A UTILIZAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
   integer,parameter     :: dp=8
   
   !Cosas del sistema  #what a quilombo
-  integer,  parameter :: n=2000         !Nro de particulas
+  integer,  parameter :: n=20         !Nro de particulas
   real(dp),parameter  :: rmax=100._dp,o=0._dp,box=rmax-o,z0=100._dp,tau=0.1_dp !Largo de la caja, máx. z fijo, tau p/ rho
   real(dp)::zmax !El máx. en z que va variando
   real(dp), parameter :: gama=1._dp !Un gamma general, vale 1/ps
@@ -13,7 +15,7 @@ program din-mol-Li
   real(dp),parameter::Tsist=300._dp !Temp. del sist., 300 K
   character(2)        :: sym(n),z
   integer::tipo(n)  !Tipo de partíc., asignado a c/una
-  real(dp)::eps(3,3),r0(3,3) !eps y r0 definidas como matrices para c/ tipo
+  real(dp)::eps(3,3),r0(3,3) !eps y r0 definidas como matrices para c/ tipo !! Quienes son r0 y eps?
 
   ! Factores de conversión de unidades
   real(dp), parameter :: kJm_ui=100._dp, eV_kJm=96.485_dp,eV_ui=eV_kJm*kJm_ui
@@ -53,7 +55,8 @@ program din-mol-Li
   real(dp)::sdr,sdv,skt
   real(dp)::crv1,crv2
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ASIGNA VALORES A LAS VARIABLES!!!!!!!!!!!!!!!1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ASIGNA VALORES A LAS VARIABLES!!!!!!!!!!!!!!!!!!!!!
+
   ! Leer semilla y probabilidad
   open(15,File='entrada.ini')
   read(15,*) idum 
@@ -81,7 +84,7 @@ program din-mol-Li
   call set_rho(rho) 
   rho0=rho
 
-  !Valores de epsilon y r0 :P
+  !Valores de epsilon y r0 :P !! Qué son?
   eps(:,2)=0
   r0(:,2)=0
   eps(2,:)=0
@@ -119,18 +122,18 @@ program din-mol-Li
      acel(i,:)=f(i,:)/m(i)
   enddo
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Escribe los primeros valores en los archivos de salida!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   ! Abro archivos de salida
-  open(11,File='Li_1.xyz')
-  open(12,File='E_Li1.dat')
-  open(13,File='T_Li1.dat')
-  open(14,File='rho_Li1.dat')
+  open(11,File='Li_1.xyz')   !! Contiene el num total de particulas, el símbolo (Li) y la posición de c/u
+  open(12,File='E_Li1.dat')  !! Contiene el tiempo y la suma de las energias pot y cin.
+  open(13,File='T_Li1.dat')  !! Contiene el tiempo y temp (què es?)
+  open(14,File='rho_Li1.dat')!! Contiene el tiempo y la rho (densidad?)
 
   call salida() !Para que escriba la config. inic. en el primer paso ;)
 
-
-  do i=1,nst
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Inicio de pasos!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  do i=1,nst !!num de pasos
 
     ! Da un paso #wii
     call ermak_a(r,v,acel,ranv)
@@ -140,7 +143,7 @@ program din-mol-Li
     call set_rho(rho)
 
     !Salida 
-    if (mod(i,nwr)==0) then
+    if (mod(i,nwr)==0) then !! nwr: num de escritura---> cada 100 pasos guarda
 
       call salida()
        
@@ -148,7 +151,7 @@ program din-mol-Li
 
     call maxz(zmax)
 
-    t=t+h
+    t=t+h !!Tiempo total que obtengo de sumar cada paso (ps)
     
   enddo
 
@@ -170,11 +173,11 @@ contains
                 write(12,*) t,sum(energy)
 
                 ! Coords. de partíc.
-                write(11,*) n
+                write(11,*) n  !!Escribe el numero de partículas totales
                 write(11,*) 
                 
                 do j =1,n
-                 write(11,*) sym(j),r(j,:)
+                 write(11,*) sym(j),r(j,:) !!Escribe para c/ partícula el simbolo y la posición
                 enddo
 
                 call kion(v,temp) 
@@ -189,6 +192,9 @@ contains
 
 
         subroutine set_rho(rho) !Densidad/concentrac.
+        
+        !! Calcula la densidad de partículas en el reservorio
+        !! Tiene como salida la densidad rho del reservorio
 
                 integer::i,g
                 real(dp)::vol,min_vol
@@ -197,13 +203,14 @@ contains
                 g=0
                 min_vol=rmax**2*2.5_dp
 
-                do i=1,n !Esto debería contar las partícs. por encima de z0
+                do i=1,n !Esto debería contar las partícs. por encima de z0 !!Cuenta cuantas particulas hay por encima de z0 (caja<z0 es donde se calcula las propiedades termodinamicas, lo que se considera sistema)
                 if (r(i,3)>z0) then
                         g=g+1
                 endif
                 enddo
 
                 vol=rmax**2*(zmax-z0) !zmax es lo que iré recalculando, pa la próx. iteración
+                                      !! vol= es el volumen del reservorio
                 
                 if (vol<min_vol) stop !Si el V del reservorio se hace pequeño, corta todo, sin escribir este último
                                       !resultado.
@@ -214,6 +221,10 @@ contains
         endsubroutine
 
         subroutine maxz(zmax) !Ajusta caja con el mov. de partícs.
+        
+        !! Recalcula la altura máxima de la caja. Esto modificara el volumen del reservorio.
+        !! Tiene como entrada y salida la altura max: zmax
+        
                 real(dp)::lohi !Like a valley/bird in the sky
                 real(dp),intent(inout)::zmax
                 integer::i
@@ -418,7 +429,7 @@ contains
           
           temp=vdac/(j*3._dp*kB_ui)
 
-  endsubroutine
+ endsubroutine
 
 
   subroutine fuerza(r,f,eps,r0,energy)

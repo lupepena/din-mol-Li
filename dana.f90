@@ -242,6 +242,9 @@ contains
 
 
         function gasdev() !Nro aleat. 
+        
+        !! Qué hace?
+        
                 real(dp)                  :: rsq,v1,v2
                 real(dp), save            :: g
                 real(dp)                  :: gasdev
@@ -266,11 +269,18 @@ contains
 
 
         subroutine set_sym(i,z) !Asigna tipo a partíc.
+        
+        !! Le asigna a cada partícula que tipo de partícula es: 1, 2 o 3 según su z.
+        
+        !! Variables de entrada: la partícula i-esima y qué partícula es, es decir, Li, CG o F (z)
+        !! Li: iones de Li, CG: Li depositado, F:?
+       
+        
                 integer,intent(in)            :: i
                 character(2),intent(in)       :: z
 
                 if(i>n) then
-                  print *, '¡Error! partíc. no existe'
+                  print *, '¡Error! partíc. no existe' !! i no puede superar el num total de partículas
                   stop
                 endif
 
@@ -293,6 +303,9 @@ contains
 
 
   subroutine set_ermak(h,gama,Tsist) !Constantes p/ Ermak
+  
+  !!Variables de entrada: ancho del paso temporal (h), gama (frecuencia, tiene unidad de 1/ps), temperatura del sistema
+  
           !En libro: xi=kB*T/m*D=gama
           real(dp),intent(in)::h,gama,Tsist !Acá irían dist. gama
 
@@ -316,6 +329,10 @@ contains
 
 
   subroutine ermak_a(r,v,acel,ranv) !Actualiza posic.
+  
+  !!Variables de entrada unicamente: la aceleración de c/ particula en z
+  !!Variables de salida unicamente: ranv de c/ partícula en z, qué es ranv?
+  !!Variables de entrada y salida, posición y velocidad de c/particula en el eje z
 
  ! Algoritmo sacado del libro de "Computer simulation of liquids" de Allen Chap 9, "Brownian Dnamics", Pag 263.
  real(dp),intent(inout)        :: r(n,3),v(n,3)
@@ -325,20 +342,26 @@ contains
  integer                       :: i,j                                                                   
                                                                                                                   
  do i = 1,n
-
+ 
+   !! Se fija si la particula está depositada (CG), de ser así no se mueve por lo tanto la posición vieja es igual a la nueva
+   
    if (sym(i)=='CG') cycle  !Si ya está congelada, ni le calcula una nueva posic ;)
    rold(i,:)=r(i,:) !Para luego ver congelam.
                                                                                                                 
-   do j = 1, 3
+   do j = 1, 3 !!Para las tres direcciones (x,y,z)
+   
      r1=gasdev()
      ranr = skt/sqrt(m(i))*sdr*r1 
      r(i,j) = r(i,j) + cc1*v(i,j) + cc2*h*acel(i,j) + ranr
 
      !P/ que Li pueda congelarse, o que siga al rebote
+     
+    !! Si la partícula no está depositada entonces...
+    
      if (sym(i)/='CG')then  
-          if(r(i,3)<1._dp) then !No importa si < o <=
+          if(r(i,3)<1._dp) then !No importa si < o <= !! Qué implica esta condición?
                   
-                  g=ran(idum)
+                  g=ran(idum) !! Elige una partícula random? No, a este numéro lo compara con la prob: si g<prob
                   
                   if(g<prob) then
                           if(sym(i)=='Li') then
